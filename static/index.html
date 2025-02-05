@@ -11,16 +11,61 @@
 </head>
 <body>
   <div class="container">
-    <div class="header">Verify with Privado ID</div>
-
-    <div class="subheader">Click the button below:</div>
-    <!-- Button to Universal Link -->
-    <a id="button" href="#" target="_blank" class="action-button">Verify</a>
+    <div class="header">Verification DApp</div>
+    <div class="subtitle">Secure & Private Digital Identity Verification</div>
     
-    <div class="subheader">OR</div>
-    <div class="subheader">Scan using Mobile Wallet:</div>
-    <!-- Div for QR Code -->
-    <div id="qrcode"></div>
+    <div class="content-wrapper">
+      <div class="left-section">
+        <div class="intro">
+          Welcome to our Verification DApp, where you can quickly and securely verify your digital credentials using advanced Zero-Knowledge Proof (ZK proof) technology.
+        </div>
+
+        <div class="steps-container">
+          <h2>How It Works</h2>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <h3>Scan the QR Code</h3>
+              <p>Simply use your mobile device or wallet application to scan the QR code displayed on the screen.</p>
+            </div>
+
+            <div class="step">
+              <div class="step-number">2</div>
+              <h3>ZK Proof Verification</h3>
+              <p>Our system validates your credentials using Zero-Knowledge Proofs, protecting your privacy.</p>
+            </div>
+
+            <div class="step">
+              <div class="step-number">3</div>
+              <h3>Instant Confirmation</h3>
+              <p>Receive immediate confirmation of your authenticated credentials.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-section">
+        <div class="verification-section">
+          <h2>Verify Your Identity</h2>
+          <a id="button" href="#" target="_blank" class="action-button">Verify</a>
+          
+          <div class="qr-container">
+            <div class="subheader">Scan using Mobile Wallet</div>
+            <div id="qrcode"></div>
+          </div>
+
+          <div id="verification-result" class="verification-result" style="display: none;">
+            <h3>Verification Result</h3>
+            <div class="result-status"></div>
+            <div class="attributes-container">
+                <h4>Verified Attributes:</h4>
+                <div class="attributes-list"></div>
+            </div>
+            <button id="verify-again" class="verify-again-btn">Verify Again</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Include the external script file -->

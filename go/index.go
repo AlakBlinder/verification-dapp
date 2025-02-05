@@ -116,14 +116,22 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 	// print authRequest
 	log.Println(authRequest)
 
+	// load the verifcation key
 	var verificationKeyLoader = &KeyLoader{Dir: keyDIR}
-	resolver := state.ETHResolver{
-		RPCUrl:          ethURL,
-		ContractAddress: common.HexToAddress(contractAddress),
+
+	resolver := map[string]state.ETHResolver{
+		"polygon:amoy": {
+			RPCUrl:          ethURL,
+			ContractAddress: common.HexToAddress(contractAddress),
+		},
+		"privado:main": {
+			RPCUrl:          "https://rpc-mainnet.privado.id",
+			ContractAddress: common.HexToAddress("0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896"),
+		},
 	}
 
 	resolvers := map[string]pubsignals.StateResolver{
-		resolverPrefix: resolver,
+		resolverPrefix: resolver["polygon:amoy"],
 	}
 
 	// EXECUTE VERIFICATION
@@ -146,16 +154,30 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("auth response verified")
-	//marshal auth resp
-	messageBytes, err := json.Marshal(authResponse)
+
+	// Create a response structure
+	response := struct {
+		Status     string                 `json:"status"`
+		Message    string                 `json:"message"`
+		Verified   bool                   `json:"verified"`
+		Attributes map[string]interface{} `json:"attributes,omitempty"`
+	}{
+		Status:   "success",
+		Message:  "Verification passed successfully",
+		Verified: true,
+		Attributes: map[string]interface{}{
+			"proof": authResponse.Body.Scope[0].Proof,
+		},
+	}
+
+	messageBytes, err := json.Marshal(response)
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to create response", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(messageBytes)
 	log.Println("verification passed")
 }

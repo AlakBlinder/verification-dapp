@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify with Privado ID (Demo)</title>
+  <!-- Link to the external CSS file -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Import the QR Code Generator Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Verify with Privado ID</div>
+
+    <div class="subheader">Click the button below:</div>
+    <!-- Button to Universal Link -->
+    <a id="button" href="#" target="_blank" class="action-button">Verify</a>
+    
+    <div class="subheader">OR</div>
+    <div class="subheader">Scan using Mobile Wallet:</div>
+    <!-- Div for QR Code -->
+    <div id="qrcode"></div>
+  </div>
+
+  <!-- Include the external script file -->
+  <script src="index.js"></script>
+</body>
+</html>

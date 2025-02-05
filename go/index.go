@@ -19,7 +19,35 @@ import (
 	"github.com/iden3/iden3comm/v2/protocol"
 )
 
-const VerificationKeyPath = "verification_key.json"
+// Configuration constants
+const (
+	// Base URL for the application
+	BaseURL = "https://f99a-2601-642-4f7c-f40-78dc-2db2-831d-9422.ngrok-free.app"
+
+	// Callback endpoint
+	CallbackURL = "/api/callback"
+
+	// Verifier ID
+	Audience = "did:iden3:polygon:amoy:x6x5sor7zpxhPBRFEZXv8dKoxpEibsDHHhFAaCbne"
+
+	// Verification key path
+	VerificationKeyPath = "verification_key.json"
+
+	// Polygon RPC endpoint
+	EthURL = "https://rpc.ankr.com/polygon_amoy/6f897086c192bc30e5f61db622983e55c342ef4de3cd0eb9c4f5eaecb9f623d6"
+
+	// Contract address for identity state
+	ContractAddress = "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124"
+
+	// Resolver prefix for Polygon network
+	ResolverPrefix = "polygon:amoy"
+
+	// Directory containing circuit verification keys
+	KeyDir = "../keys"
+
+	// IPFS gateway
+	IpfsGateway = "https://ipfs.io"
+)
 
 type KeyLoader struct {
 	Dir string
@@ -45,17 +73,11 @@ func main() {
 var requestMap = make(map[string]interface{})
 
 func GetAuthRequest(w http.ResponseWriter, r *http.Request) {
-
-	// Audience is verifier id
-	rURL := "https://f99a-2601-642-4f7c-f40-78dc-2db2-831d-9422.ngrok-free.app"
 	sessionID := 1
-	CallbackURL := "/api/callback"
-	Audience := "did:iden3:polygon:amoy:x6x5sor7zpxhPBRFEZXv8dKoxpEibsDHHhFAaCbne"
-
-	uri := fmt.Sprintf("%s%s?sessionId=%s", rURL, CallbackURL, strconv.Itoa(sessionID))
+	uri := fmt.Sprintf("%s%s?sessionId=%s", BaseURL, CallbackURL, strconv.Itoa(sessionID))
 
 	// Generate request for basic authentication
-	var request protocol.AuthorizationRequestMessage = auth.CreateAuthorizationRequest("test flow", Audience, uri)
+	var request protocol.AuthorizationRequestMessage = auth.CreateAuthorizationRequest("Verify your Social Credential", Audience, uri)
 
 	// Add request for a specific proof
 	var mtpProofRequest protocol.ZeroKnowledgeProofRequest
@@ -100,15 +122,15 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add Polygon Mumbai RPC node endpoint - needed to read on-chain state
-	ethURL := "https://rpc.ankr.com/polygon_amoy/6f897086c192bc30e5f61db622983e55c342ef4de3cd0eb9c4f5eaecb9f623d6"
+	ethURL := EthURL
 
 	// Add identity state contract address
-	contractAddress := "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124"
+	contractAddress := ContractAddress
 
-	resolverPrefix := "polygon:amoy"
+	resolverPrefix := ResolverPrefix
 
 	// Locate the directory that contains circuit's verification keys
-	keyDIR := "../keys"
+	keyDIR := KeyDir
 
 	// fetch authRequest from sessionID
 	authRequest := requestMap[sessionID]
@@ -124,10 +146,6 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 			RPCUrl:          ethURL,
 			ContractAddress: common.HexToAddress(contractAddress),
 		},
-		"privado:main": {
-			RPCUrl:          "https://rpc-mainnet.privado.id",
-			ContractAddress: common.HexToAddress("0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896"),
-		},
 	}
 
 	resolvers := map[string]pubsignals.StateResolver{
@@ -135,7 +153,7 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// EXECUTE VERIFICATION
-	verifier, err := auth.NewVerifier(verificationKeyLoader, resolvers, auth.WithIPFSGateway("https://ipfs.io"))
+	verifier, err := auth.NewVerifier(verificationKeyLoader, resolvers, auth.WithIPFSGateway(IpfsGateway))
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)

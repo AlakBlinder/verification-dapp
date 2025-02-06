@@ -22,7 +22,7 @@ import (
 // Configuration constants
 const (
 	// Base URL for the application
-	BaseURL = "https://e09d-2601-642-4f7c-f40-7de8-e245-faf-3f8b.ngrok-free.app"
+	BaseURL = "https://verification-dapp-v1-1049789873803.us-west1.run.app"
 
 	// Callback endpoint
 	CallbackURL = "/api/callback"
@@ -59,12 +59,18 @@ func (m KeyLoader) Load(id circuits.CircuitID) ([]byte, error) {
 }
 
 func main() {
+	// Get PORT from environment (default to 8080 if not set)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
 	http.HandleFunc("/api/sign-in", GetAuthRequest)
 	http.HandleFunc("/api/callback", Callback)
 	log.Println("Starting server at port 8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)
 	}
 }

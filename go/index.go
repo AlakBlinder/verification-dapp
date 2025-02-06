@@ -22,7 +22,7 @@ import (
 // Configuration constants
 const (
 	// Base URL for the application
-	BaseURL = "https://f99a-2601-642-4f7c-f40-78dc-2db2-831d-9422.ngrok-free.app"
+	BaseURL = "https://e09d-2601-642-4f7c-f40-7de8-e245-faf-3f8b.ngrok-free.app"
 
 	// Callback endpoint
 	CallbackURL = "/api/callback"
@@ -59,7 +59,7 @@ func (m KeyLoader) Load(id circuits.CircuitID) ([]byte, error) {
 }
 
 func main() {
-	fs := http.FileServer(http.Dir("../static"))
+	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
 	http.HandleFunc("/api/sign-in", GetAuthRequest)
 	http.HandleFunc("/api/callback", Callback)

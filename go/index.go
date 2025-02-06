@@ -43,7 +43,7 @@ const (
 	ResolverPrefix = "polygon:amoy"
 
 	// Directory containing circuit verification keys
-	KeyDir = "../keys"
+	KeyDir = "./keys"
 
 	// IPFS gateway
 	IpfsGateway = "https://ipfs.io"

@@ -22,7 +22,7 @@ import (
 // Configuration constants
 const (
 	// Base URL for the application
-	BaseURL = "https://verification-dapp-v1-1049789873803.us-west1.run.app"
+	BaseURL = "https://e09d-2601-642-4f7c-f40-7de8-e245-faf-3f8b.ngrok-free.app"
 
 	// Callback endpoint
 	CallbackURL = "/api/callback"
@@ -86,10 +86,10 @@ func GetAuthRequest(w http.ResponseWriter, r *http.Request) {
 	var request protocol.AuthorizationRequestMessage = auth.CreateAuthorizationRequest("Verify your Social Credential", Audience, uri)
 
 	// Add request for a specific proof
-	var mtpProofRequest protocol.ZeroKnowledgeProofRequest
-	mtpProofRequest.ID = 1
-	mtpProofRequest.CircuitID = string(circuits.AtomicQueryMTPV2CircuitID)
-	mtpProofRequest.Query = map[string]interface{}{
+	var walletProofRequest protocol.ZeroKnowledgeProofRequest
+	walletProofRequest.ID = 1
+	walletProofRequest.CircuitID = string(circuits.AtomicQueryMTPV2CircuitID)
+	walletProofRequest.Query = map[string]interface{}{
 		"allowedIssuers": []string{"*"},
 		"credentialSubject": map[string]interface{}{
 			"walletAddress": map[string]interface{}{},
@@ -97,7 +97,20 @@ func GetAuthRequest(w http.ResponseWriter, r *http.Request) {
 		"context": "ipfs://QmdGrFoZrEgUoiS4QN77YSWY5LfcQDKQAzBTtkG5dLw1YV",
 		"type":    "SocialCredential",
 	}
-	request.Body.Scope = append(request.Body.Scope, mtpProofRequest)
+	request.Body.Scope = append(request.Body.Scope, walletProofRequest)
+
+	var emailProofRequest protocol.ZeroKnowledgeProofRequest
+	emailProofRequest.ID = 2
+	emailProofRequest.CircuitID = string(circuits.AtomicQueryMTPV2CircuitID)
+	emailProofRequest.Query = map[string]interface{}{
+		"allowedIssuers": []string{"*"},
+		"credentialSubject": map[string]interface{}{
+			"email": map[string]interface{}{},
+		},
+		"context": "ipfs://QmdGrFoZrEgUoiS4QN77YSWY5LfcQDKQAzBTtkG5dLw1YV",
+		"type":    "SocialCredential",
+	}
+	request.Body.Scope = append(request.Body.Scope, emailProofRequest)
 
 	// Store auth request in map associated with session ID
 	requestMap[strconv.Itoa(sessionID)] = request

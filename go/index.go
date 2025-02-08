@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -22,7 +21,7 @@ import (
 // Configuration constants
 const (
 	// Base URL for the application
-	BaseURL = "https://e09d-2601-642-4f7c-f40-7de8-e245-faf-3f8b.ngrok-free.app"
+	BaseURL = "https://verification-dapp-v1-1049789873803.us-west1.run.app"
 
 	// Callback endpoint
 	CallbackURL = "/api/callback"
@@ -69,6 +68,7 @@ func main() {
 	http.Handle("/", fs)
 	http.HandleFunc("/api/sign-in", GetAuthRequest)
 	http.HandleFunc("/api/callback", Callback)
+	http.HandleFunc("/api/status", GetVerificationStatus)
 	log.Println("Starting server at port 8080")
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)
@@ -79,8 +79,11 @@ func main() {
 var requestMap = make(map[string]interface{})
 
 func GetAuthRequest(w http.ResponseWriter, r *http.Request) {
-	sessionID := 1
-	uri := fmt.Sprintf("%s%s?sessionId=%s", BaseURL, CallbackURL, strconv.Itoa(sessionID))
+	// Clear any existing verification result for this session
+	sessionID := "1" // Since we're using a fixed session ID
+	delete(verificationResults, sessionID)
+
+	uri := fmt.Sprintf("%s%s?sessionId=%s", BaseURL, CallbackURL, sessionID)
 
 	// Generate request for basic authentication
 	var request protocol.AuthorizationRequestMessage = auth.CreateAuthorizationRequest("Verify your Social Credential", Audience, uri)
@@ -113,7 +116,7 @@ func GetAuthRequest(w http.ResponseWriter, r *http.Request) {
 	request.Body.Scope = append(request.Body.Scope, emailProofRequest)
 
 	// Store auth request in map associated with session ID
-	requestMap[strconv.Itoa(sessionID)] = request
+	requestMap[sessionID] = request
 
 	// print request
 	fmt.Println(request)
@@ -126,6 +129,9 @@ func GetAuthRequest(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// Store verification results in memory (or database)
+var verificationResults = make(map[string]interface{})
+
 // Callback works with sign-in callbacks
 func Callback(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("callback")
@@ -134,6 +140,11 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 
 	// get JWZ token params from the post request
 	tokenBytes, err := io.ReadAll(r.Body)
+	// Convert tokenBytes to string to see the JWT
+	fmt.Println("JWT Token:", string(tokenBytes))
+
+	// Store result
+	verificationResults[sessionID] = tokenBytes
 
 	if err != nil {
 		log.Println(err)
@@ -179,7 +190,7 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("verifier created")
-	authResponse, err := verifier.FullVerify(
+	_, err = verifier.FullVerify(
 		r.Context(),
 		string(tokenBytes),
 		authRequest.(protocol.AuthorizationRequestMessage),
@@ -194,17 +205,15 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 
 	// Create a response structure
 	response := struct {
-		Status     string                 `json:"status"`
-		Message    string                 `json:"message"`
-		Verified   bool                   `json:"verified"`
-		Attributes map[string]interface{} `json:"attributes,omitempty"`
+		Status   string `json:"status"`
+		Message  string `json:"message"`
+		Verified bool   `json:"verified"`
+		JWT      string `json:"jwt"`
 	}{
 		Status:   "success",
 		Message:  "Verification passed successfully",
 		Verified: true,
-		Attributes: map[string]interface{}{
-			"proof": authResponse.Body.Scope[0].Proof,
-		},
+		JWT:      string(tokenBytes),
 	}
 
 	messageBytes, err := json.Marshal(response)
@@ -217,4 +226,26 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(messageBytes)
 	log.Println("verification passed")
+}
+
+// Add new endpoint for frontend to check status
+func GetVerificationStatus(w http.ResponseWriter, r *http.Request) {
+	sessionID := r.URL.Query().Get("sessionId")
+
+	w.Header().Set("Content-Type", "application/json")
+
+	result, exists := verificationResults[sessionID]
+	if !exists {
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  "pending",
+			"message": "Verification in progress...",
+		})
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":  "success",
+		"message": "Verification completed",
+		"data":    result,
+	})
 }

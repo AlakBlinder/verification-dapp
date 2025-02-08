@@ -45,7 +45,7 @@
       </div>
 
       <div class="right-section">
-        <div class="verification-section">
+        <div cAsection">
           <h2>Verify Your Identity</h2>
           <a id="button" href="#" target="_blank" class="action-button">Verify</a>
           
@@ -57,9 +57,11 @@
           <div id="verification-result" class="verification-result" style="display: none;">
             <h3>Verification Result</h3>
             <div class="result-status"></div>
-            <div class="attributes-container">
-                <h4>Verified Attributes:</h4>
-                <div class="attributes-list"></div>
+            <div class="jwt-container">
+              <h4>JWT Details</h4>
+              <div class="jwt-content">
+                <pre id="jwt-display"></pre>
+              </div>
             </div>
             <button id="verify-again" class="verify-again-btn">Verify Again</button>
           </div>
